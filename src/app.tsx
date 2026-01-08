@@ -84,7 +84,7 @@ export default function App() {
 	async function getNewListFromMTGO(mtgoList: string) {
 		const parsedList = parseMtgo(mtgoList);
 
-		return Promise.all(
+		const result = await Promise.allSettled(
 			parsedList.flatMap(({ name, number }) =>
 				[...new Array(number)].map(async (_, i) =>
 					fetchCard(
@@ -96,6 +96,8 @@ export default function App() {
 				),
 			),
 		);
+
+		return result.filter((result) => result.status == 'fulfilled').map((result) => (result as PromiseFulfilledResult<Card>).value)
 	}
 
 	async function getCardList(): Promise<Card[]> {
