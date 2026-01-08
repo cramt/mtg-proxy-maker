@@ -48,15 +48,6 @@ function Mana({ src, name }: { src: string; name: ManaType }) {
 	);
 }
 
-const fontSizeByLength = {
-	38: "7.3pt",
-	35: "8.4pt",
-	30: "8.7pt",
-	28: "9.2pt",
-	25: "9.5pt",
-	0: "10pt",
-} as const;
-
 export default function TitleBar(p: TitleBarProps) {
 	const props = mergeProps({ manaCost: [] }, p);
 
@@ -89,12 +80,8 @@ export default function TitleBar(p: TitleBarProps) {
 					"margin-top": "auto",
 					"margin-bottom": "auto",
 					"margin-left": "0.5mm",
-					"font-size": Object.entries(fontSizeByLength)
-						.sort(([a], [b]) => parseInt(b) - parseInt(a))
-						.find(
-							([length, _]) =>
-								props.title.length + coloredMana.length * 2 >= parseInt(length),
-						)?.[1],
+					"--chars": props.title.length + (coloredMana().length * 2) + (colorlessMana().length > 0 ? 2 : 0),
+					"font-size": `clamp(7pt, (200px) / var(--chars)*2, 10pt)`,
 					flex: 1,
 				}}
 			>

@@ -33,7 +33,10 @@ function injectSymbols(description: string): JSX.Element {
 }
 
 export default function RegularDescription(props: RegularDescriptionProps) {
-	const totalLength = (props.flavor?.length ?? 0) + (props.oracle?.length ?? 0);
+	const totalText = (props.oracle ?? "") + (props.flavor ?? "");
+	const totalLength = totalText.length;
+	const paragraphs = totalText.split('\n').length - 1
+	const divider = props.flavor && props.oracle ? 1 : 0
 
 	return (
 		<div
@@ -46,10 +49,11 @@ export default function RegularDescription(props: RegularDescriptionProps) {
 				left: "4.9mm",
 				right: "4.7mm",
 				position: "absolute",
-				"font-size": totalLength >= 320 ? "6pt" : "7pt",
-				padding: "0.8mm",
+				"--rows": (totalLength / 27) + (paragraphs * 0.5) + (divider * 1),
+				"font-size": `clamp(6.5pt, 92.6px / var(--rows) * 1.2, 9.5pt)`,
+				padding: "1mm",
 				"font-family": "MPlantin",
-				"line-height": 1,
+				"line-height": 0.9,
 			}}
 		>
 			{props.oracle && (

@@ -38,7 +38,8 @@ export default function TypeBar(props: TypeBarProps) {
 					margin: 0,
 					"margin-left": "0.5mm",
 					"font-family": "Beleren",
-					"font-size": props.type.split(" ").length > 4 ? "7pt" : "8.5pt",
+					"--rows": props.type.length,
+					"font-size": `clamp(6pt, (200px) / var(--rows) * 2, 9pt)`,
 					flex: 1,
 				}}
 			>

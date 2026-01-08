@@ -107,7 +107,7 @@ export default function CardComponent(props: {
 				<Metadata {...props.card} />
 			</Show>
 			<Show when={props.card.overrideWithScanUrl}>
-				<img src={props.card.overrideWithScanUrl} alt={props.card.title} />
+				<img class="rounded-xl" src={props.card.overrideWithScanUrl} alt={props.card.title} />
 			</Show>
 		</div>
 	);
