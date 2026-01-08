@@ -1,4 +1,4 @@
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import { parseCardColor, parseCardFrame } from "../types/backgrounds";
 import { Card } from "../types/card";
 import { CardError } from "../types/error";
@@ -52,12 +52,33 @@ export function manaLetterToType(manaLetter: string): ManaType | ManaType[] {
 	}
 }
 
+function needScan(scryfallResult: any) {
+	return ['Stickers', 'Dungeon'].includes(scryfallResult['type_line']) || ['split', 'modal_dfc', 'adventure', 'planar', 'host', 'class', 'saga', 'flip'].includes(scryfallResult['layout'])
+}
+
+function getCardScanUrl(scryfallResult: any, { ifNecessary }: { ifNecessary: boolean }) {
+	// Skip if not necessary
+	if (ifNecessary && !needScan(scryfallResult)) {
+		return undefined
+	}
+
+	let uris
+
+	if ('image_uris' in scryfallResult) {
+		uris = scryfallResult['image_uris']
+	} else if ('card_faces' in scryfallResult) {
+		uris = scryfallResult['card_faces'].find((f: any) => 'image_uris' in f)?.['image_uris']
+	}
+
+	return uris['large'] ?? uris['normal'] ?? uris['small']
+}
+
 export async function fetchCard(
 	title: string,
 	lang = "en",
 	variant: number = 0,
 ): Promise<Card> {
-	const [frCards, enCards]: [any, any] = await Promise.all([
+	let [frCards, enCards]: [any, any] = await Promise.all([
 		fetch(
 			`https://api.scryfall.com/cards/search/?q=((!"${title}" lang:${lang}) or ("${title}" t:token)) -t:card order:released direction:asc`,
 		).catch((e) => {
@@ -86,10 +107,7 @@ export async function fetchCard(
 	}
 
 	if (frCards.status == 404) {
-		throw new CardError(
-			title,
-			'Not found'
-		);
+		frCards = enCards;
 	}
 
 	const fr = frCards.data.find((c: any) => c.name.includes(title));
@@ -104,56 +122,98 @@ export async function fetchCard(
 
 	const variants = await fetchVariants(en["name"]);
 
-	if ("card_faces" in fr) {
-		throw new CardError(
-			title,
-			`Split card are not yet supported`,
-		);
-	}
+	const biFaced = en['layout'] == 'transform' && 'card_faces' in en && en['card_faces'].length == 2
+	console.debug('biFaced', biFaced)
+	const frCardFaceInfo = biFaced ? fr['card_faces'][0] : fr
+	const enCardFaceInfo = biFaced ? en['card_faces'][0] : en
+	const frReverseFaceInfo = biFaced ? fr['card_faces'][1] : fr
+	const enReverseFaceInfo = biFaced ? en['card_faces'][1] : en
 
-	const colorsToUse: string[] = en["type_line"].toLowerCase().includes("land")
-		? fr["color_identity"]
-		: fr["colors"];
+	const colorsToUse: string[] = enCardFaceInfo["type_line"].toLowerCase().includes("land")
+		? frCardFaceInfo["color_identity"]
+		: frCardFaceInfo["colors"] ?? frCardFaceInfo["color_identity"];
+
 	const manaTypes = colorsToUse.flatMap(manaLetterToType);
-	const manaCost = parseMana(fr["mana_cost"]);
+
+	const manaCost = parseMana(enCardFaceInfo["mana_cost"]);
+
+	const overrideWithScanUrl = getCardScanUrl(frCardFaceInfo, { ifNecessary: true }) ?? getCardScanUrl(enCardFaceInfo, { ifNecessary: true })
+
+	console.debug('en', enCardFaceInfo)
+	console.debug('fr', frCardFaceInfo)
 
 	const card: Card = {
-		title: fr["printed_name"] || fr["name"],
+		title: frCardFaceInfo["printed_name"] || frCardFaceInfo["name"],
 		manaCost,
-		artUrl: en["image_uris"]?.["art_crop"],
+		artUrl: enCardFaceInfo["image_uris"]?.["art_crop"],
 		totalVariants: variants.length,
 		aspect: {
-			frame: parseCardFrame(en["type_line"]),
+			frame: parseCardFrame(enCardFaceInfo["type_line"]),
 			color: parseCardColor(
 				manaTypes,
-				en["type_line"].toLowerCase().includes("artifact") &&
-				!en["type_line"].toLowerCase().includes("vehicle"),
+				enCardFaceInfo["type_line"].toLowerCase().includes("artifact") &&
+				!enCardFaceInfo["type_line"].toLowerCase().includes("vehicle"),
 				manaCost
 					.filter((type) => type != "colorless" && type != "x")
 					.every(isBiType),
 			),
 			legendary:
 				en["frame_effects"]?.includes("legendary") ||
-				en["type_line"].toLowerCase().includes("legendary"),
+				enCardFaceInfo["type_line"].toLowerCase().includes("legendary"),
 		},
-		typeText: fr["printed_type_line"] || en["type_line"],
-		oracleText: fr["printed_text"] || fr["oracle_text"],
-		flavorText: fr["flavor_text"],
-		power: fr["power"],
-		toughness: fr["toughness"],
-		artist: fr["artist"],
+		typeText: frCardFaceInfo["printed_type_line"] || frCardFaceInfo["type_line"] || enCardFaceInfo["printed_type_line"] || enCardFaceInfo["type_line"],
+		oracleText: frCardFaceInfo["printed_text"] || frCardFaceInfo["oracle_text"],
+		flavorText: frCardFaceInfo["flavor_text"],
+		power: frCardFaceInfo["power"],
+		toughness: frCardFaceInfo["toughness"],
+		artist: frCardFaceInfo["artist"],
 		collectorNumber: fr["collector_number"],
 		lang: fr["lang"],
 		rarity: fr["rarity"],
 		set: fr["set"],
-		category: en["type_line"].toLowerCase().includes("planeswalker")
+		category: enCardFaceInfo["type_line"].toLowerCase().includes("planeswalker")
 			? "Planeswalker"
 			: "Regular",
-		loyalty: en["loyalty"],
+		loyalty: enCardFaceInfo["loyalty"],
+		overrideWithScanUrl,
 	};
 
 	return {
-		verso: "default",
+		verso: biFaced ? {
+			title: frReverseFaceInfo["printed_name"] || frReverseFaceInfo["name"],
+			manaCost,
+			artUrl: enReverseFaceInfo["image_uris"]?.["art_crop"],
+			totalVariants: variants.length,
+			aspect: {
+				frame: parseCardFrame(enReverseFaceInfo["type_line"]),
+				color: parseCardColor(
+					manaTypes,
+					enReverseFaceInfo["type_line"].toLowerCase().includes("artifact") &&
+					!enReverseFaceInfo["type_line"].toLowerCase().includes("vehicle"),
+					manaCost
+						.filter((type) => type != "colorless" && type != "x")
+						.every(isBiType),
+				),
+				legendary:
+					en["frame_effects"]?.includes("legendary") ||
+					enReverseFaceInfo["type_line"].toLowerCase().includes("legendary"),
+			},
+			typeText: frReverseFaceInfo["printed_type_line"] || frReverseFaceInfo["type_line"] || enReverseFaceInfo["printed_type_line"] || enReverseFaceInfo["type_line"],
+			oracleText: frReverseFaceInfo["printed_text"] || frReverseFaceInfo["oracle_text"],
+			flavorText: frReverseFaceInfo["flavor_text"],
+			power: frReverseFaceInfo["power"],
+			toughness: frReverseFaceInfo["toughness"],
+			artist: frReverseFaceInfo["artist"],
+			collectorNumber: fr["collector_number"],
+			lang: fr["lang"],
+			rarity: fr["rarity"],
+			set: fr["set"],
+			category: enReverseFaceInfo["type_line"].toLowerCase().includes("planeswalker")
+				? "Planeswalker"
+				: "Regular",
+			loyalty: enReverseFaceInfo["loyalty"],
+			overrideWithScanUrl,
+		} satisfies Card : "default",
 		...card,
 		...variants[variant % variants.length],
 	} as Card;

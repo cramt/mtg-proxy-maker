@@ -2,6 +2,7 @@ import { CardColor, CardFrame } from "./backgrounds";
 import { ManaType } from "./mana";
 
 export type Card = {
+	overrideWithScanUrl?: string;
 	artUrl: string;
 	artist?: string;
 	aspect: { frame: CardFrame; color: CardColor; legendary: boolean };

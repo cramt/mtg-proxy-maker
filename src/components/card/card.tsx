@@ -41,69 +41,74 @@ export default function CardComponent(props: {
 				"box-sizing": "content-box",
 			}}
 		>
-			<img
-				style={{
-					width: "100%",
-					height: "100%",
-					position: "absolute",
-					top: 0,
-					left: 0,
-				}}
-				src={frameAndBackground().background}
-			/>
-			{/* Black mask for the bottom of the card */}
-			<div
-				style={{
-					bottom: "5.5mm",
-					height: "2mm",
-					left: "0",
-					right: "0",
-					position: "absolute",
-					background: 'var(--card-bgc, "black")',
-				}}
-			/>
-			{props.card.artUrl && (
-				<Art url={props.card.artUrl} category={props.card.category} />
-			)}
-			<img
-				style={{
-					width: "100%",
-					height: "100%",
-					position: "absolute",
-					top: 0,
-					left: 0,
-					"z-index": props.card.category == "Planeswalker" ? 1 : 0,
-				}}
-				src={frameAndBackground().frame}
-			/>
-			<TitleBar
-				title={props.card.title}
-				manaCost={props.card.manaCost}
-				category={props.card.category}
-			/>
-			<TypeBar type={props.card.typeText} category={props.card.category} />
-			{props.card.category == "Regular" ? (
-				props.card.aspect.frame != "Basic Land" && (
-					<RegularDescription
-						flavor={props.card.flavorText}
-						oracle={props.card.oracleText}
-					/>
-				)
-			) : (
-				<PlaneswalkerDescription oracle={props.card.oracleText} />
-			)}
-			{props.card.category == "Regular" ? (
-				<Show when={!!props.card.power || !!props.card.toughness}>
-					<Strength
-						power={props.card.power}
-						toughness={props.card.toughness}
-						textColor={props.card.aspect.frame == "Vehicle" ? "white" : "black"}
-					/>
-				</Show>
-			) : (
-				<PlaneswalkerLoyalty value={props.card.loyalty} />
-			)}
-			<Metadata {...props.card} />
+			<Show when={!props.card.overrideWithScanUrl}>
+				<img
+					style={{
+						width: "100%",
+						height: "100%",
+						position: "absolute",
+						top: 0,
+						left: 0,
+					}}
+					src={frameAndBackground().background}
+				/>
+				{/* Black mask for the bottom of the card */}
+				<div
+					style={{
+						bottom: "5.5mm",
+						height: "2mm",
+						left: "0",
+						right: "0",
+						position: "absolute",
+						background: 'var(--card-bgc, "black")',
+					}}
+				/>
+				{props.card.artUrl && (
+					<Art url={props.card.artUrl} category={props.card.category} />
+				)}
+				<img
+					style={{
+						width: "100%",
+						height: "100%",
+						position: "absolute",
+						top: 0,
+						left: 0,
+						"z-index": props.card.category == "Planeswalker" ? 1 : 0,
+					}}
+					src={frameAndBackground().frame}
+				/>
+				<TitleBar
+					title={props.card.title}
+					manaCost={props.card.manaCost}
+					category={props.card.category}
+				/>
+				<TypeBar type={props.card.typeText} category={props.card.category} />
+				{props.card.category == "Regular" ? (
+					props.card.aspect.frame != "Basic Land" && (
+						<RegularDescription
+							flavor={props.card.flavorText}
+							oracle={props.card.oracleText}
+						/>
+					)
+				) : (
+					<PlaneswalkerDescription oracle={props.card.oracleText} />
+				)}
+				{props.card.category == "Regular" ? (
+					<Show when={!!props.card.power || !!props.card.toughness}>
+						<Strength
+							power={props.card.power}
+							toughness={props.card.toughness}
+							textColor={props.card.aspect.frame == "Vehicle" ? "white" : "black"}
+						/>
+					</Show>
+				) : (
+					<PlaneswalkerLoyalty value={props.card.loyalty} />
+				)}
+				<Metadata {...props.card} />
+			</Show>
+			<Show when={props.card.overrideWithScanUrl}>
+				<img src={props.card.overrideWithScanUrl} alt={props.card.title} />
+			</Show>
 		</div>
 	);
 }

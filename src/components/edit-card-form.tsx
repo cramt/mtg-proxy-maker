@@ -47,6 +47,13 @@ export default function EditCardForm(props: {
 }) {
 	return (
 		<main class="bg-stone-500 grid grid-rows-[auto_1fr] h-full">
+			{props.card().overrideWithScanUrl ? (
+				<div class="p-3">
+					<div class="alert alert-warning w-full">
+						This card is a scan, you can change its informations but it won't be visible.
+					</div>
+				</div>
+			) : null}
 			<section class="relative grid place-content-center p-5 border-stone-600 border-b-4 @container">
 				<div class="flex mb-3 mx-auto gap-3">
 					<button

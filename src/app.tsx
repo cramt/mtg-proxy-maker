@@ -79,9 +79,15 @@ export default function App() {
 	};
 
 	async function fetchAndAddCard(name: string) {
-		const fetchedCard = await fetchCard(name, language());
+		try {
+			const fetchedCard = await fetchCard(name, language());
 
-		setCardList((prev) => [...prev, fetchedCard]);
+			setCardList((prev) => [...prev, fetchedCard]);
+		} catch (e) {
+			if (e instanceof CardError) {
+				toastError(e)
+			}
+		}
 	}
 
 	async function getNewListFromMTGO(mtgoList: string) {
@@ -99,6 +105,8 @@ export default function App() {
 				),
 			),
 		);
+
+		console.debug('result', result)
 
 		for (const { reason } of result.filter(r => r.status == 'rejected')) {
 			if (reason instanceof CardError) {
