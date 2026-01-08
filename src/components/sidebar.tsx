@@ -12,6 +12,85 @@ type SidebarProps = {
 	onRawListImport: (rawCardList: string) => void;
 };
 
+const deckExample = `
+10 Forest
+1 Beamtown Beatstick
+1 Become Immense
+1 Bite Down
+1 Bladegriff Prototype
+1 Blazing Crescendo
+1 Blossoming Defense
+1 Brute Force
+1 Coiling Oracle
+1 Cold-Eyed Selkie
+1 Colossal Growth
+1 Combat Research
+1 Command Tower
+1 Cosmic Hunger
+1 Cultivate
+1 Decisive Denial
+1 Deeproot Wayfinder
+1 Djinn Illuminatus
+1 Eureka Moment
+1 Evolving Wilds
+1 Frontier Bivouac
+1 Fully Grown
+1 Gaea's Gift
+1 Geode Golem
+1 Giant Growth
+1 Goldvein Pick
+1 Groundswell
+1 Growth Spiral
+1 Gruul Guildgate
+1 Gruul Turf
+1 Harrow
+1 Hunter's Insight
+1 Inscription of Abundance
+1 Invigorate
+6 Island
+1 Izzet Boilerworks
+1 Izzet Guildgate
+1 Joint Exploration
+1 Kessig Wolf Run
+1 Kodama's Reach
+1 Master's Rebuke
+1 Mercurial Spelldancer
+6 Mountain
+1 Mutagenic Growth
+1 Neheb, Dreadhorde Champion
+1 Oakhame Adversary
+1 Ohran Viper
+1 Ram Through
+1 Roar of Challenge
+1 Roiling Regrowth
+1 Season of Growth
+1 Shore Up
+1 Simic Charm
+1 Simic Growth Chamber
+1 Simic Guildgate
+1 Snake Umbra
+1 Snakeskin Veil
+1 Soul's Fire
+1 Sticky Fingers
+1 Stormchaser Drake
+1 Sunder Shaman
+1 Surrakar Spellblade
+1 Tamiyo's Safekeeping
+1 Temple of Abandon
+1 Temple of Epiphany
+1 Temple of Mystery
+1 Temur Battle Rage
+1 Temur Charm
+1 Terramorphic Expanse
+1 Titan's Strength
+1 Titanic Growth
+1 Trygon Predator
+1 Tyvar's Stand
+1 Vedalken Heretic
+1 Vines of Vastwood
+1 Xyris, the Writhing Storm
+`.trim()
+
 export default function Sidebar(props: SidebarProps) {
 	const [rawCardListDialogOpen, setRawCardListDialogOpen] = createSignal(false);
 
@@ -88,12 +167,15 @@ export default function Sidebar(props: SidebarProps) {
 			</aside>
 
 			<dialog
-				class="z-20 h-1/2 w-96 bg-stone-600 shadow-xl mt-52 rounded-lg backdrop:bg-black/50"
+				class="z-20 modal modal-bottom sm:modal-middle"
 				open={rawCardListDialogOpen()}
 			>
+				<form method="dialog" class="modal-backdrop bg-black/50" onClick={() => setRawCardListDialogOpen(false)} >
+					<button>close</button>
+				</form>
 				<form
 					method="dialog"
-					class="flex flex-col h-full gap-5"
+					class="modal-box flex flex-col gap-5 bg-stone-600"
 					onSubmit={async (e) => {
 						e.preventDefault();
 						const rawCardList = (e.target as HTMLFormElement).cardList.value;
@@ -102,18 +184,22 @@ export default function Sidebar(props: SidebarProps) {
 					}}
 				>
 					<label for="cardList" class="label-text text-white">
-						Paste your card list here
+						Paste your card list here <br />
+						Unsupported cards will be skipped.
 					</label>
-					<textarea name="cardList" class="textarea h-full" />
-					<div class="w-full flex gap-2">
-						<button
-							class="btn btn-secondary flex-1"
-							type="reset"
-							onClick={() => setRawCardListDialogOpen(false)}
-						>
-							Cancel
-						</button>
-						<button class="btn btn-primary flex-1">Submit</button>
+					<textarea name="cardList" class="textarea h-full" rows={12} placeholder={deckExample} />
+
+					<div class="modal-action">
+						<div class="w-full flex gap-2">
+							<button
+								class="btn btn-secondary flex-1"
+								type="reset"
+								onClick={() => setRawCardListDialogOpen(false)}
+							>
+								Cancel
+							</button>
+							<button type="submit" class="btn btn-primary flex-1">Submit</button>
+						</div>
 					</div>
 				</form>
 			</dialog>

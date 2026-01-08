@@ -65,12 +65,8 @@ export function parseCardFrame(engTypeText: string): CardFrame {
 		return "Planeswalker";
 	} else {
 		throw new CardError(
-			`Unknown card type: ${engTypeText}`,
-			<>
-				<span>Card type</span>
-				<span class="text-xl italic text-white">{engTypeText}</span>
-				<span>is not supported (yet)</span>
-			</>,
+			engTypeText,
+			'Card type is not yet supported'
 		);
 	}
 }

@@ -12,6 +12,9 @@ import Sidebar from "./components/sidebar";
 import { parseMtgo } from "./services/mtgo-parser";
 import { fetchCard } from "./services/scryfall";
 import { Card, getEmptyCard } from "./types/card";
+import { Toaster } from "solid-toast";
+import { CardError } from "./types/error";
+import { toastError } from "./services/toaster";
 
 function createResourceStore<T extends {}>(
 	initialValue: T,
@@ -97,6 +100,13 @@ export default function App() {
 			),
 		);
 
+		for (const { reason } of result.filter(r => r.status == 'rejected')) {
+			if (reason instanceof CardError) {
+				console.error(reason)
+				toastError(reason);
+			}
+		}
+
 		return result.filter((result) => result.status == 'fulfilled').map((result) => (result as PromiseFulfilledResult<Card>).value)
 	}
 
@@ -128,6 +138,7 @@ export default function App() {
 
 	return (
 		<main class="md:grid md:grid-rows-none md:grid-cols-[1fr_50rem_1fr] md:h-screen font-serif print:!block print:overflow-visible">
+			<Toaster position="bottom-right" />
 			<Sidebar
 				onClearList={() => {
 					setCardList([]);

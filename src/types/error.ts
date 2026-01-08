@@ -1,21 +1,9 @@
-import { JSX } from "solid-js/jsx-runtime";
-
-export class JSXError extends Error {
+export class CardError extends Error {
 	constructor(
+		public readonly cardName: string,
 		message: string,
-		public messageElement: JSX.Element,
 	) {
 		super(message);
-		this.name = this.constructor.name;
-	}
-}
-
-export class CardError extends JSXError {
-	constructor(
-		message: string,
-		public messageElement: JSX.Element,
-	) {
-		super(message, messageElement);
 		this.name = this.constructor.name;
 	}
 }

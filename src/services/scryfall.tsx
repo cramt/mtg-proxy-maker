@@ -64,11 +64,7 @@ export async function fetchCard(
 			console.error(e);
 			throw new CardError(
 				title,
-				<>
-					<span>Card with name</span>
-					<span class="text-xl italic text-white">{title}</span>
-					<span>not found for lang {lang}</span>
-				</>,
+				`not found for ${lang}`
 			);
 		}),
 		fetch(
@@ -77,11 +73,7 @@ export async function fetchCard(
 			console.error(e);
 			throw new CardError(
 				title,
-				<>
-					<span>Card with name</span>
-					<span class="text-xl italic text-white">{title}</span>
-					<span>not found</span>
-				</>,
+				'Not found'
 			);
 		}),
 	]).then(([fr, en]) => Promise.all([fr.json(), en.json()]));
@@ -89,36 +81,24 @@ export async function fetchCard(
 	if (enCards.status == 404) {
 		throw new CardError(
 			title,
-			<>
-				<span>Card with name</span>
-				<span class="text-xl italic text-white">{title}</span>
-				<span>not found</span>
-			</>,
+			'Not found'
 		);
 	}
 
 	if (frCards.status == 404) {
 		throw new CardError(
 			title,
-			<>
-				<span>Card with name</span>
-				<span class="text-xl italic text-white">{title}</span>
-				<span>not found for this language ({lang})</span>
-			</>,
+			'Not found'
 		);
 	}
 
-	const fr = frCards.data.find((c: any) => c.name == title);
-	const en = enCards.data.find((c: any) => c.name == title);
+	const fr = frCards.data.find((c: any) => c.name.includes(title));
+	const en = enCards.data.find((c: any) => c.name.includes(title));
 
 	if (!fr || !en) {
 		throw new CardError(
 			title,
-			<>
-				<span>Card with name</span>
-				<span class="text-xl italic text-white">{title}</span>
-				<span>not found</span>
-			</>,
+			'Not found'
 		);
 	}
 
@@ -126,11 +106,8 @@ export async function fetchCard(
 
 	if ("card_faces" in fr) {
 		throw new CardError(
-			`Card ${title} is a split card`,
-			<>
-				<span class="text-xl italic text-white">{title}</span>
-				<span>Split cards are not supported (yet)</span>
-			</>,
+			title,
+			`Split card are not yet supported`,
 		);
 	}
 
