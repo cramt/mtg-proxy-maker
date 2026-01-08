@@ -2,6 +2,7 @@ import { Match, Switch } from "solid-js";
 import { defaultVerso } from "../../app";
 import { Card } from "../../types/card";
 import CardComponent from "./card";
+import cardBack from "../../assets/images/card-back.png";
 
 export default function CardVerso(props: { verso: Card["verso"] }) {
 	return (
@@ -24,7 +25,7 @@ export default function CardVerso(props: { verso: Card["verso"] }) {
 			}
 		>
 			<Match when={props.verso && props.verso == "default"}>
-				<CardVerso verso={defaultVerso()} />
+				<CardVerso verso={defaultVerso() || cardBack} />
 			</Match>
 
 			<Match when={props.verso && typeof props.verso == "string"}>
