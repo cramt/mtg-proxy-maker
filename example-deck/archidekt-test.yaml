@@ -1,0 +1,5 @@
+source: https://archidekt.com/decks/21196197/gogo_is_an_eldrazi
+
+overrides:
+  - name: "Pact of Negation"
+    flavorText: "Custom flavor for testing"
